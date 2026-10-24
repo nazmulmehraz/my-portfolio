@@ -261,9 +261,9 @@ fetch('data/videos.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;r
  var ws=[].slice.call(g.children);
  if(ws.length>LIM){ws.slice(LIM).forEach(function(w){w.hidden=true});
   var box=document.createElement('div');box.id='vmore';box.style.cssText='text-align:center;margin-top:34px';
-  var b=document.createElement('button');b.type='button';b.className='btn';b.textContent='View more';b.setAttribute('aria-expanded','false');
+  var b=document.createElement('button');b.type='button';b.className='btn';b.textContent='View more work';b.setAttribute('aria-expanded','false');
   var op=false;
-  b.onclick=function(){op=!op;ws.slice(LIM).forEach(function(w){w.hidden=!op});b.textContent=op?'Show less':'View more';b.setAttribute('aria-expanded',String(op));if(!op){var s=document.getElementById('portfolio');if(s)s.scrollIntoView({behavior:'smooth'})}};
+  b.onclick=function(){op=!op;ws.slice(LIM).forEach(function(w){w.hidden=!op});b.textContent=op?'Show less':'View more work';b.setAttribute('aria-expanded',String(op));if(!op){var s=document.getElementById('portfolio');if(s)s.scrollIntoView({behavior:'smooth'})}};
   box.appendChild(b);g.parentNode.insertBefore(box,g.nextSibling)}
  lazy();
 }).catch(function(){});
