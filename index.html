@@ -141,6 +141,7 @@ footer .copy{margin-top:14px}
 </style>
 <style>@media (max-width:480px){.sigimg{height:27px;width:149px}nav{padding-left:16px;gap:8px}.btn.sm{padding:9px 15px;font-size:14px}}</style>
 <style>header nav.glass{border-radius:999px}</style>
+<style>.vw[hidden]{display:none}</style>
 </head>
 <body>
 <div class="aur" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -256,6 +257,14 @@ fetch('data/videos.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;r
  ids.forEach(function(id,i){var w=document.createElement('div');w.className='vw';
   w.innerHTML='<div class="vc glass"><iframe data-src="https://www.youtube-nocookie.com/embed/'+id+'?rel=0&playsinline=1&modestbranding=1" title="Video '+(i+1)+' by Nazmul Mehraz" allow="'+ALLOW+'" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div><a class="yl" href="https://youtube.com/shorts/'+id+'" target="_blank" rel="noopener">Open on YouTube \u2197</a>';
   g.appendChild(w)});
+ var LIM=6,prev=document.getElementById('vmore');if(prev)prev.remove();
+ var ws=[].slice.call(g.children);
+ if(ws.length>LIM){ws.slice(LIM).forEach(function(w){w.hidden=true});
+  var box=document.createElement('div');box.id='vmore';box.style.cssText='text-align:center;margin-top:34px';
+  var b=document.createElement('button');b.type='button';b.className='btn';b.textContent='View more';b.setAttribute('aria-expanded','false');
+  var op=false;
+  b.onclick=function(){op=!op;ws.slice(LIM).forEach(function(w){w.hidden=!op});b.textContent=op?'Show less':'View more';b.setAttribute('aria-expanded',String(op));if(!op){var s=document.getElementById('portfolio');if(s)s.scrollIntoView({behavior:'smooth'})}};
+  box.appendChild(b);g.parentNode.insertBefore(box,g.nextSibling)}
  lazy();
 }).catch(function(){});
 })();
