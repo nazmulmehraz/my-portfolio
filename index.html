@@ -158,6 +158,12 @@ footer .copy{margin-top:14px}
 .vp.playing .pb{opacity:0;pointer-events:none}
 .vp:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 </style>
+<style>
+.vp .mk,.vp .mb{display:none}
+.vp .pb{width:76px;height:54px;margin:-27px 0 0 -38px;border-radius:16px;background:rgba(229,23,31,.6);border:1px solid rgba(255,140,140,.45);box-shadow:0 10px 26px -10px rgba(229,23,31,.55);transition:transform .3s,background .3s,opacity .25s}
+.vp .pb::after{border-left:17px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px}
+.vp:hover .pb{background:rgba(229,23,31,.82);transform:scale(1.08)}
+</style>
 </head>
 <body>
 <div class="aur" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -268,20 +274,19 @@ function lazy(){var fr=[].slice.call(g.querySelectorAll('iframe[data-src]'));
  fr.forEach(function(f){io.observe(f)})}
 var vps=[];
 function cmd(f,fn){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func:fn,args:[]}),'*')}catch(x){}}
-function setUi(vp,play){vp.classList.toggle('playing',play);clearTimeout(vp._t);
- if(play){vp._t=setTimeout(function(){if(vp.classList.contains('playing'))vp.classList.remove('ui')},1600)}else{vp.classList.add('ui')}}
+function setUi(vp,play){clearTimeout(vp._t);vp.classList.toggle('playing',play);if(!play)vp.classList.remove('loaded')}
+function showVid(vp,ms){clearTimeout(vp._t);vp._t=setTimeout(function(){if(vp.classList.contains('playing'))vp.classList.add('loaded')},ms)}
 function pauseOthers(cur){vps.forEach(function(v){if(v!==cur&&v._f&&v.classList.contains('playing')){cmd(v._f,'pauseVideo');setUi(v,false)}})}
 function start(vp){
  var id=vp.dataset.id,f=document.createElement('iframe');
  f.src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1&fs=0&loop=1&playlist='+id+'&enablejsapi=1&origin='+encodeURIComponent(location.origin);
  f.allow='autoplay; encrypted-media; picture-in-picture';f.title='Video';f.referrerPolicy='strict-origin-when-cross-origin';
  f.onload=function(){try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(x){}};
- vp.insertBefore(f,vp.querySelector('.mk'));vp._f=f;vp.classList.add('started','ui','playing');
- clearTimeout(vp._t);vp._t=setTimeout(function(){if(vp.classList.contains('playing'))vp.classList.remove('ui')},4500)}
+ vp.insertBefore(f,vp.querySelector('.pb'));vp._f=f;vp.classList.add('started','playing');showVid(vp,3200)}
 function toggle(vp){
  if(!vp._f){pauseOthers(vp);start(vp);return}
  if(vp.classList.contains('playing')){cmd(vp._f,'pauseVideo');setUi(vp,false)}
- else{pauseOthers(vp);cmd(vp._f,'playVideo');setUi(vp,true)}}
+ else{pauseOthers(vp);cmd(vp._f,'playVideo');vp.classList.add('playing');showVid(vp,1500)}}
 function mk(id,i){
  var w=document.createElement('div');w.className='vw';
  var c=document.createElement('div');c.className='vc glass';
@@ -291,8 +296,7 @@ function mk(id,i){
  im.onerror=function(){if(!im.dataset.f){im.dataset.f=1;im.src=hq}};
  im.src='https://i.ytimg.com/vi/'+id+'/maxresdefault.jpg';
  var pb=document.createElement('span');pb.className='pb';
- var m1=document.createElement('i');m1.className='mk';var m2=document.createElement('i');m2.className='mb';
- vp.appendChild(im);vp.appendChild(m1);vp.appendChild(m2);vp.appendChild(pb);
+ vp.appendChild(im);vp.appendChild(pb);
  vp.addEventListener('click',function(){toggle(vp)});
  vp.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(vp)}});
  c.appendChild(vp);w.appendChild(c);vps.push(vp);return w}
@@ -303,7 +307,7 @@ window.addEventListener('message',function(e){
  if(st===null)return;
  for(var k=0;k<vps.length;k++){var v=vps[k];
   if(v._f&&v._f.contentWindow===e.source){
-   if(st===1){v.classList.add('loaded');if(!v.classList.contains('playing')||v.classList.contains('ui')){setUi(v,true)}}
+   if(st===1){if(v.classList.contains('playing')&&!v.classList.contains('loaded'))showVid(v,300)}
    else if(st===2||st===0){setUi(v,false)}
    break}}});
 fetch('data/videos.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){
@@ -311,14 +315,15 @@ fetch('data/videos.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;r
  var ids=d.videos.map(function(v){return idOf(v&&v.url)}).filter(Boolean);
  g.innerHTML='';vps=[];
  ids.forEach(function(id,i){g.appendChild(mk(id,i))});
- var LIM=6,prev=document.getElementById('vmore');if(prev)prev.remove();
- var ws=[].slice.call(g.children);
- if(ws.length>LIM){ws.slice(LIM).forEach(function(w){w.hidden=true});
-  var box=document.createElement('div');box.id='vmore';box.style.cssText='text-align:center;margin-top:34px';
-  var b=document.createElement('button');b.type='button';b.className='btn';b.textContent='View more work';b.setAttribute('aria-expanded','false');
-  var op=false;
-  b.onclick=function(){op=!op;ws.slice(LIM).forEach(function(w){w.hidden=!op});b.textContent=op?'Show less':'View more work';b.setAttribute('aria-expanded',String(op));if(!op){var s=document.getElementById('portfolio');if(s)s.scrollIntoView({behavior:'smooth'})}};
-  box.appendChild(b);g.parentNode.insertBefore(box,g.nextSibling)}
+ var prev=document.getElementById('vmore');if(prev)prev.remove();
+ var ws=[].slice.call(g.children),op=false,mq=window.matchMedia('(max-width:700px)');
+ var box=document.createElement('div');box.id='vmore';box.style.cssText='text-align:center;margin-top:34px';
+ var b=document.createElement('button');b.type='button';b.className='btn';b.setAttribute('aria-expanded','false');
+ box.appendChild(b);g.parentNode.insertBefore(box,g.nextSibling);
+ function upd(){var lim=mq.matches?3:6;ws.forEach(function(w,i){w.hidden=!op&&i>=lim});box.style.display=ws.length>lim?'':'none';b.textContent=op?'Show less':'View more work';b.setAttribute('aria-expanded',String(op))}
+ b.onclick=function(){op=!op;upd();if(!op){vps.forEach(function(v){if(v._f&&v.closest('.vw').hidden){cmd(v._f,'pauseVideo');setUi(v,false)}});var s=document.getElementById('portfolio');if(s)s.scrollIntoView({behavior:'smooth'})}};
+ if(mq.addEventListener)mq.addEventListener('change',upd);else if(mq.addListener)mq.addListener(upd);
+ upd();
 }).catch(function(){});
 })();
 </script>
